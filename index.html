@@ -34,6 +34,7 @@
               data-target="#task-form"
               aria-expanded="false"
               aria-controls="task-form"
+              onclick="changeHeader('Nowe zadanie')"
               >Dodaj nowe zadanie</a
             >
           </li>
@@ -60,21 +61,8 @@
     </nav>
 
     <div class="container">
-      <h1 class="mt-5">Lista zadań (To-Do List)</h1>
-      <div class="form-group">
-        <label for="sort-order">Sortuj według:</label>
-        <select
-          id="sort-order"
-          class="form-control"
-          onchange="changeSortOrder()"
-        >
-          <option value="order">Własna kolejność</option>
-          <option value="start_date">Data rozpoczęcia</option>
-          <option value="end_date">Data zakończenia</option>
-        </select>
-      </div>
-
       <div class="collapse" id="task-form">
+        <h3 id="form-header"></h3>
         <div class="form-group">
           <label for="new-task">Opis zadania:</label>
           <input
@@ -105,12 +93,36 @@
           </div>
         </div>
         <div class="input-group-append">
-          <button class="btn btn-custom" type="button" onclick="addTask()">
+          <button
+            id="add-task-btn"
+            class="btn btn-custom"
+            type="button"
+            onclick="addTask()"
+          >
             Dodaj
+          </button>
+          <button
+            id="save-edit-btn"
+            class="btn btn-custom"
+            type="button"
+            style="display: none"
+          >
+            Zapisz
           </button>
         </div>
       </div>
-
+      <div class="form-group mt-3">
+        <label for="sort-order">Sortuj według:</label>
+        <select
+          id="sort-order"
+          class="form-control"
+          onchange="changeSortOrder()"
+        >
+          <option value="order">Własna kolejność</option>
+          <option value="start_date">Data rozpoczęcia</option>
+          <option value="end_date">Data zakończenia</option>
+        </select>
+      </div>
       <table class="table table-hover mt-4">
         <thead>
           <tr>
