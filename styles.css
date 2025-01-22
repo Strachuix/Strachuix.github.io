@@ -1,0 +1,59 @@
+/* Styl ukończonych zadań */
+.task-completed {
+    text-decoration: line-through;
+    color: gray;
+  }
+  
+  /* Styl przycisków */
+  .btn-custom {
+    background-color: #007bff;
+    color: white;
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  
+  .btn-custom:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Stylizacja grupy formularza */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Responsywność */
+  @media (max-width: 768px) {
+    .form-row .form-group {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+  }
+  
+  /* Stylizacja alertów */
+  .alert {
+    width: 80%;
+    min-width: 400px;
+    position: fixed;
+    left: 10%;
+    top: 50px;
+    z-index: 9999;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Dodanie marginesu do głównego kontenera strony, aby przesunąć zawartość w dół */
+  .container {
+    margin-top: 100px;
+  }
+  
+  /* Stylizacja elementów drag & drop */
+  .drag-handle {
+    cursor: move;
+    margin-right: 10px;
+  }
+  

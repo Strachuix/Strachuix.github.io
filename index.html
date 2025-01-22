@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do List</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Lista zadań</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="#"
+              data-toggle="collapse"
+              data-target="#task-form"
+              aria-expanded="false"
+              aria-controls="task-form"
+              >Dodaj nowe zadanie</a
+            >
+          </li>
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="#"
+              data-toggle="modal"
+              data-target="#uploadModal"
+              >Załaduj listę</a
+            >
+          </li>
+          <li class="nav-item">
+            <button
+              class="btn btn-link nav-link"
+              id="download-tasks-btn"
+              onclick="downloadTasks()"
+            >
+              Pobierz listę
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <h1 class="mt-5">Lista zadań (To-Do List)</h1>
+      <div class="form-group">
+        <label for="sort-order">Sortuj według:</label>
+        <select
+          id="sort-order"
+          class="form-control"
+          onchange="changeSortOrder()"
+        >
+          <option value="order">Własna kolejność</option>
+          <option value="start_date">Data rozpoczęcia</option>
+          <option value="end_date">Data zakończenia</option>
+        </select>
+      </div>
+
+      <div class="collapse" id="task-form">
+        <div class="form-group">
+          <label for="new-task">Opis zadania:</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Opis zadania"
+            id="new-task"
+          />
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="start-date">Data rozpoczęcia:</label>
+            <input type="date" class="form-control" id="start-date" />
+          </div>
+          <div class="form-group col-md-6">
+            <label for="start-time">Godzina rozpoczęcia:</label>
+            <input type="time" class="form-control" id="start-time" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="end-date">Data zakończenia:</label>
+            <input type="date" class="form-control" id="end-date" />
+          </div>
+          <div class="form-group col-md-6">
+            <label for="end-time">Godzina zakończenia:</label>
+            <input type="time" class="form-control" id="end-time" />
+          </div>
+        </div>
+        <div class="input-group-append">
+          <button class="btn btn-custom" type="button" onclick="addTask()">
+            Dodaj
+          </button>
+        </div>
+      </div>
+
+      <table class="table table-hover mt-4">
+        <thead>
+          <tr>
+            <th>Opis zadania</th>
+            <th>Data rozpoczęcia</th>
+            <th>Godzina rozpoczęcia</th>
+            <th>Data zakończenia</th>
+            <th>Godzina zakończenia</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody id="task-list">
+          <!-- Placeholder -->
+          <tr id="placeholder-row">
+            <td colspan="6" class="text-center">Brak zadań do wyświetlenia</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="uploadModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="uploadModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="uploadModalLabel">
+              Załaduj listę z komputera
+            </h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <input type="file" class="form-control" id="file-input" />
+            <div class="form-check mt-3">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="uploadOption"
+                id="addTasks"
+                value="add"
+                checked
+              />
+              <label class="form-check-label" for="addTasks">
+                Dodaj zadania do obecnej listy
+              </label>
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="uploadOption"
+                id="replaceTasks"
+                value="replace"
+              />
+              <label class="form-check-label" for="replaceTasks">
+                Zastąp obecną listę
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Anuluj
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="processFile()"
+            >
+              Załaduj
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div
+      id="error-message"
+      class="alert alert-danger mt-2"
+      style="display: none"
+    >
+      Błąd: Struktura pliku jest nieprawidłowa.
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script src="scripts.js"></script>
+  </body>
+</html>
