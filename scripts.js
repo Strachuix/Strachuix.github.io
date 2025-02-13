@@ -18,10 +18,10 @@ function loadTasks() {
 
   switch (sortOrder) {
     case "start_date":
-      tasks.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+      tasks.sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
       break;
     case "end_date":
-      tasks.sort((a, b) => new Date(a.end_date) - new Date(b.end_date));
+      tasks.sort((a, b) => new Date(a.end_datetime) - new Date(b.end_datetime));
       break;
     default:
       tasks.sort((a, b) => a.order - b.order);
@@ -35,24 +35,25 @@ function loadTasks() {
     const placeholderRow = document.createElement("tr");
     placeholderRow.id = "placeholder-row";
     placeholderRow.innerHTML = `
-            <td colspan="6" class="text-center">Brak zadań do wyświetlenia</td>
-        `;
+      <td colspan="4" class="text-center">Brak zadań do wyświetlenia</td>
+    `;
     taskList.appendChild(placeholderRow);
   } else {
     tasks.forEach((task, index) => {
       const row = document.createElement("tr");
+      const startDatetime = task.start_datetime.replace('T', ' ');
+      const endDatetime = task.end_datetime.replace('T', ' ');
       row.innerHTML = `
-                <td><span class="drag-handle">&#9776;</span>${task.task}</td>
-                <td>${task.start_date}</td>
-                <td>${task.start_time}</td>
-                <td>${task.end_date}</td>
-                <td>${task.end_time}</td>
-                <td>
-                    <button class="btn btn-success btn-sm" onclick="completeTask(${index})">Zakończ</button>
-                    <button class="btn btn-danger btn-sm ml-2" onclick="removeTask(${index})">Usuń</button>
-                    <button class="btn btn-warning btn-sm ml-2" onclick="editTask(${index})">Edytuj</button>
-                </td>
-            `;
+        <td><span class="drag-handle">&#9776;</span></td>
+        <td>${task.task}</td>
+        <td>${startDatetime}</td>
+        <td>${endDatetime}</td>
+        <td>
+          <button class="btn btn-success btn-sm" onclick="completeTask(${index})">Zakończ</button>
+          <button class="btn btn-danger btn-sm ml-2" onclick="removeTask(${index})">Usuń</button>
+          <button class="btn btn-warning btn-sm ml-2" onclick="editTask(${index})">Edytuj</button>
+        </td>
+      `;
       taskList.appendChild(row);
     });
   }
@@ -82,50 +83,42 @@ function changeSortOrder() {
 }
 
 function addTask() {
-    const taskInput = document.getElementById('new-task');
-    const startDate = document.getElementById('start-date');
-    const startTime = document.getElementById('start-time');
-    const endDate = document.getElementById('end-date');
-    const endTime = document.getElementById('end-time');
-    const errorMessage = document.getElementById('error-message');
-    errorMessage.style.display = 'none';
+  const taskInput = document.getElementById('new-task');
+  const startDatetime = document.getElementById('start-datetime');
+  const endDatetime = document.getElementById('end-datetime');
+  const errorMessage = document.getElementById('error-message');
+  errorMessage.style.display = 'none';
 
-    if (taskInput.value === '' || startDate.value === '' || startTime.value === '' || endDate.value === '' || endTime.value === '') {
-        showNotification('Błąd: Wszystkie pola są wymagane.', 'error');
-        return;
-    }
+  if (taskInput.value === '' || startDatetime.value === '' || endDatetime.value === '') {
+    showNotification('Błąd: Wszystkie pola są wymagane.', 'error');
+    return;
+  }
 
-    const taskText = taskInput.value;
-    const start_date = startDate.value;
-    const start_time = startTime.value;
-    const end_date = endDate.value;
-    const end_time = endTime.value;
+  const taskText = taskInput.value;
+  const start_datetime = startDatetime.value;
+  const end_datetime = endDatetime.value;
 
-    let tasks = [];
-    try {
-        tasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-    } catch (error) {
-        console.error('Error reading from LocalStorage', error);
-    }
+  let tasks = [];
+  try {
+    tasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+  } catch (error) {
+    console.error('Error reading from LocalStorage', error);
+  }
 
-    const order = tasks.length > 0 ? Math.max(...tasks.map(task => task.order)) + 1 : 0;
-    
-    tasks.push({ task: taskText, start_date: start_date, start_time: start_time, end_date: end_date, end_time: end_time, completed: false, order: order });
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
-    taskInput.value = '';
-    startDate.value = '';
-    startTime.value = '';
-    endDate.value = '';
-    endTime.value = '';
-    loadTasks();
-    toggleDownloadButton();
-    showNotification('Zadanie dodane pomyślnie!', 'success');
+  const order = tasks.length > 0 ? Math.max(...tasks.map(task => task.order)) + 1 : 0;
 
-    document.getElementById('add-task-btn').style.display = 'block';
-    document.getElementById('save-edit-btn').style.display = 'none';
+  tasks.push({ task: taskText, start_datetime: start_datetime, end_datetime: end_datetime, completed: false, order: order });
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
+  taskInput.value = '';
+  startDatetime.value = '';
+  endDatetime.value = '';
+  loadTasks();
+  toggleDownloadButton();
+  showNotification('Zadanie dodane pomyślnie!', 'success');
 
+  document.getElementById('add-task-btn').style.display = 'block';
+  document.getElementById('save-edit-btn').style.display = 'none';
 }
-
 
 function completeTask(index) {
   let tasks = [];
@@ -162,53 +155,50 @@ function removeTask(index) {
 }
 
 function processFile() {
-    const fileInput = document.getElementById('file-input');
-    const file = fileInput.files[0];
-    const uploadOption = document.querySelector('input[name="uploadOption"]:checked').value;
+  const fileInput = document.getElementById('file-input');
+  const file = fileInput.files[0];
+  const uploadOption = document.querySelector('input[name="uploadOption"]:checked').value;
 
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const tasks = JSON.parse(e.target.result);
-                if (Array.isArray(tasks) && tasks.every(task => 
-                    typeof task.task === 'string' &&
-                    typeof task.start_date === 'string' &&
-                    typeof task.start_time === 'string' &&
-                    typeof task.end_date === 'string' &&
-                    typeof task.end_time === 'string' &&
-                    typeof task.completed === 'boolean' &&
-                    typeof task.order === 'number')) {
-                    
-                    let finalTasks;
-                    if (uploadOption === 'add') {
-                        let existingTasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-                        tasks.forEach(task => {
-                            task.order = existingTasks.length > 0 ? Math.max(...existingTasks.map(t => t.order)) + 1 : existingTasks.length;
-                            existingTasks.push(task);
-                        });
-                        finalTasks = existingTasks;
-                    } else {
-                        finalTasks = tasks;
-                    }
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const tasks = JSON.parse(e.target.result);
+        if (Array.isArray(tasks) && tasks.every(task => 
+          typeof task.task === 'string' &&
+          typeof task.start_datetime === 'string' &&
+          typeof task.end_datetime === 'string' &&
+          typeof task.completed === 'boolean' &&
+          typeof task.order === 'number')) {
+          
+          let finalTasks;
+          if (uploadOption === 'add') {
+            let existingTasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+            tasks.forEach(task => {
+              task.order = existingTasks.length > 0 ? Math.max(...existingTasks.map(t => t.order)) + 1 : existingTasks.length;
+              existingTasks.push(task);
+            });
+            finalTasks = existingTasks;
+          } else {
+            finalTasks = tasks;
+          }
 
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(finalTasks));
-                    loadTasks();
-                    $('#uploadModal').modal('hide');
-                    showNotification('Lista załadowana pomyślnie!', 'success');
-                    toggleDownloadButton();
-                } else {
-                    throw new Error('Invalid structure');
-                }
-            } catch (error) {
-                showNotification('Błąd: Struktura pliku jest nieprawidłowa.', 'error');
-                $('#uploadModal').modal('hide'); // zamknij modal w przypadku błędu
-            }
-        };
-        reader.readAsText(file);
-    }
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(finalTasks));
+          loadTasks();
+          $('#uploadModal').modal('hide');
+          showNotification('Lista załadowana pomyślnie!', 'success');
+          toggleDownloadButton();
+        } else {
+          throw new Error('Invalid structure');
+        }
+      } catch (error) {
+        showNotification('Błąd: Struktura pliku jest nieprawidłowa.', 'error');
+        $('#uploadModal').modal('hide');
+      }
+    };
+    reader.readAsText(file);
+  }
 }
-
 
 function downloadTasks() {
   let tasks = [];
@@ -265,23 +255,17 @@ function saveNewOrder() {
 
   taskItems.forEach((item, index) => {
     const task = {
-      task: item.querySelector("td:nth-child(1)").textContent.trim().slice(1), // Usuwamy symbol drag-handle
-      start_date: item.querySelector("td:nth-child(2)").textContent,
-      start_time: item.querySelector("td:nth-child(3)").textContent,
-      end_date: item.querySelector("td:nth-child(4)").textContent,
+      task: item.querySelector("td:nth-child(2)").textContent.trim().slice(1),
+      start_datetime: item.querySelector("td:nth-child(3)").textContent,
+      end_datetime: item.querySelector("td:nth-child(4)").textContent,
       end_time: item.querySelector("td:nth-child(5)").textContent,
-      completed: false,
+      completed: false, //todo fix
       order: index,
     };
     tasks.push(task);
   });
 
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
-}
-
-function changeSortOrder() {
-  loadTasks();
-  initSortable();
 }
 
 function initSortable() {
@@ -304,62 +288,51 @@ function initSortable() {
 }
 
 function editTask(index) {
-    const taskInput = document.getElementById('new-task');
-    const startDate = document.getElementById('start-date');
-    const startTime = document.getElementById('start-time');
-    const endDate = document.getElementById('end-date');
-    const endTime = document.getElementById('end-time');
-    const errorMessage = document.getElementById('error-message');
-    const taskForm = document.getElementById('task-form'); // Formularz, który ma zostać rozwinięty
-    errorMessage.style.display = 'none';
+  const taskInput = document.getElementById('new-task');
+  const startDatetime = document.getElementById('start-datetime');
+  const endDatetime = document.getElementById('end-datetime');
+  const errorMessage = document.getElementById('error-message');
+  const taskForm = document.getElementById('task-form');
+  errorMessage.style.display = 'none';
 
-    let tasks = [];
-    try {
-        tasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
-    } catch (error) {
-        console.error('Error reading from LocalStorage', error);
+  let tasks = [];
+  try {
+    tasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+  } catch (error) {
+    console.error('Error reading from LocalStorage', error);
+  }
+
+  if (tasks[index]) {
+    const task = tasks[index];
+    taskInput.value = task.task;
+    startDatetime.value = task.start_datetime;
+    endDatetime.value = task.end_datetime;
+
+    document.getElementById('add-task-btn').style.display = 'none';
+    document.getElementById('save-edit-btn').style.display = 'block';
+    document.getElementById('save-edit-btn').onclick = function () {
+      saveEditedTask(index);
+    };
+
+    changeHeader('Edytuj zadanie');
+
+    if (!taskForm.classList.contains('show')) {
+      $('#task-form').collapse('show');
     }
-
-    if (tasks[index]) {
-        const task = tasks[index];
-        taskInput.value = task.task;
-        startDate.value = task.start_date;
-        startTime.value = task.start_time;
-        endDate.value = task.end_date;
-        endTime.value = task.end_time;
-
-        document.getElementById('add-task-btn').style.display = 'none';
-        document.getElementById('save-edit-btn').style.display = 'block';
-        document.getElementById('save-edit-btn').onclick = function () {
-            saveEditedTask(index);
-        };
-
-        changeHeader('Edytuj zadanie');
-
-        // Rozwiń formularz, jeśli jest zwinięty
-        if (!taskForm.classList.contains('show')) {
-            $('#task-form').collapse('show');
-        }
-    }
+  }
 }
-
-
 
 function saveEditedTask(index) {
   const taskInput = document.getElementById("new-task");
-  const startDate = document.getElementById("start-date");
-  const startTime = document.getElementById("start-time");
-  const endDate = document.getElementById("end-date");
-  const endTime = document.getElementById("end-time");
+  const startDatetime = document.getElementById("start-datetime");
+  const endDatetime = document.getElementById("end-datetime");
   const errorMessage = document.getElementById("error-message");
   errorMessage.style.display = "none";
 
   if (
     taskInput.value === "" ||
-    startDate.value === "" ||
-    startTime.value === "" ||
-    endDate.value === "" ||
-    endTime.value === ""
+    startDatetime.value === "" ||
+    endDatetime.value === ""
   ) {
     showNotification("Błąd: Wszystkie pola są wymagane.", "error");
     return;
@@ -374,10 +347,8 @@ function saveEditedTask(index) {
 
   if (tasks[index]) {
     tasks[index].task = taskInput.value;
-    tasks[index].start_date = startDate.value;
-    tasks[index].start_time = startTime.value;
-    tasks[index].end_date = endDate.value;
-    tasks[index].end_time = endTime.value;
+    tasks[index].start_datetime = startDatetime.value;
+    tasks[index].end_datetime = endDatetime.value;
 
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
     loadTasks();
@@ -388,10 +359,8 @@ function saveEditedTask(index) {
   document.getElementById("save-edit-btn").style.display = "none";
   document.getElementById("add-task-btn").style.display = "block";
   taskInput.value = "";
-  startDate.value = "";
-  startTime.value = "";
-  endDate.value = "";
-  endTime.value = "";
+  startDatetime.value = "";
+  endDatetime.value = "";
 }
 
 function changeHeader(text){
